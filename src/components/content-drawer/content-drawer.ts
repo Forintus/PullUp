@@ -1,5 +1,6 @@
-import { Component, Input, ElementRef, Renderer } from '@angular/core';
-import { Platform, DomController } from 'ionic-angular';
+import { Component, Input, ElementRef, Renderer, ViewChild } from '@angular/core';
+import { Platform, DomController, Searchbar } from 'ionic-angular';
+import { FormControl } from '@angular/forms';
 
 /**
  * Generated class for the ContentDrawerComponent component.
@@ -15,18 +16,51 @@ export class ContentDrawer {
 
   @Input('options') options: any;
 
-  handleHeight: number = 44;
-  bounceBack: boolean = true;
-  thresholdTop: number = 50;
-  thresholdBottom: number = 50;
-  drawerTop: number = 70;
-  drawerBottom: number = this.platform.height() - this.handleHeight;
-  initialTop: number = this.drawerBottom;
+  @ViewChild(Searchbar) searchBar: Searchbar;
+
+  private handleHeight: number = 44;
+  private bounceBack: boolean = true;
+  private thresholdTop: number = 50;
+  private thresholdBottom: number = 50;
+  private drawerTop: number = 70;
+  private panVelocity: number = 0.5;
+  private panAnimation: number = 0.3;
+  private drawerBottom: number = this.platform.height() - this.handleHeight - 100;
+  private initialTop: number = this.drawerBottom;
+
+  private searchControl: FormControl;
+  private shouldShowCancel: boolean = true;
+  private placeholder: string = 'Zoek een locatie';
+  private cancelButtonText = "Annuleren";
+  private searching: boolean = false;
 
   constructor(public element: ElementRef, public renderer: Renderer, public domCtrl: DomController,
     public platform: Platform) {
 
     console.log('Constructing ContentDrawer Component');
+
+    this.searchControl = new FormControl();
+  }
+
+  onFocus(event) {
+    this.animateDrawer(this.drawerTop);
+  }
+
+  onBlur(event) {
+
+  }
+
+  onSearchInput() {
+    this.searching = true;
+  }
+
+  onClearSearch(event) {
+    // this.items = [];
+    // this.items.length = 0;
+  }
+
+  onCancelSearch(event) {
+    this.animateDrawer(this.drawerBottom);
   }
 
   ngAfterViewInit() {
@@ -61,16 +95,16 @@ export class ContentDrawer {
 
   handlePan(ev) {
 
-    let delta = ev.deltaY;
-    let time = ev.deltaTime;
-    let speed = delta / time || 0;
+    let delta = ev.deltaY,
+    time = ev.deltaTime,
+    speed = delta / time || 0;
 
-    console.log(speed);
+    // console.log(speed);
 
     let newTop = this.initialTop + delta;
 
-    let bounceToBottom = false;
-    let bounceToTop = false;
+    let bounceToBottom = false,
+    bounceToTop = false;
 
     this.renderer.setElementStyle(this.element.nativeElement, 'transition', 'none');
 
@@ -96,9 +130,9 @@ export class ContentDrawer {
         console.log("bounceToTop", bounceToTop);
       }
 
-      if (speed < -0.5) {
+      if (speed < -this.panVelocity) {
         this.animateDrawer(this.drawerTop);
-      } else if (speed > 0.5) {
+      } else if (speed > this.panVelocity) {
         this.animateDrawer(this.drawerBottom);
       } else if (newTop < this.thresholdTop || bounceToTop) {
         this.animateDrawer(this.drawerTop);
@@ -110,7 +144,7 @@ export class ContentDrawer {
 
   animateDrawer(edge: number) {
     this.domCtrl.write(() => {
-      this.renderer.setElementStyle(this.element.nativeElement, 'transition', 'top 0.5s');
+      this.renderer.setElementStyle(this.element.nativeElement, 'transition', 'top ' + this.panAnimation + 's');
       this.renderer.setElementStyle(this.element.nativeElement, 'top', edge + 'px');
     });
     this.initialTop = edge;

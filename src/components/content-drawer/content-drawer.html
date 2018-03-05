@@ -1,7 +1,9 @@
 <!-- Generated template for the ContentDrawerComponent component -->
 <ion-header>
   <ion-toolbar>
-    <ion-title>Drag me</ion-title>
+    <ion-searchbar #searchBar [formControl]="searchControl" [showCancelButton]="shouldShowCancel" (ionClear)="onClearSearch(event)"
+      (ionCancel)="onCancelSearch($event)" (ionFocus)="onFocus($event)" (ionBlur)="onBlur($event)" animated="true" [placeholder]="placeholder"
+      [cancelButtonText]="cancelButtonText" (ionInput)="onSearchInput()" type="search"></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 <ion-content no-padding>
